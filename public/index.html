@@ -3,19 +3,19 @@
   <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>bugsift — sift signal from noise in your issue tracker</title>
+    <title>bugsift - sift signal from noise in your issue tracker</title>
     <meta name="description" content="Self-hosted GitHub issue triage. Classifies, dedups, reproduces, and drafts replies in ~90 seconds. You approve. Your tokens never leave your infrastructure. Install in one command."/>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website"/>
-    <meta property="og:title" content="bugsift — self-hosted GitHub issue triage"/>
+    <meta property="og:title" content="bugsift - self-hosted GitHub issue triage"/>
     <meta property="og:description" content="Classifies, dedups, reproduces, and drafts replies in ~90 seconds. One-command install. Your data never leaves your infrastructure."/>
     <meta property="og:image" content="/og-image.png"/>
     <meta property="og:url" content="https://bugsift.dev"/>
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="twitter:title" content="bugsift — self-hosted GitHub issue triage"/>
+    <meta name="twitter:title" content="bugsift - self-hosted GitHub issue triage"/>
     <meta name="twitter:description" content="Classifies, dedups, reproduces, and drafts replies in ~90 seconds. Install in one command."/>
     <meta name="twitter:image" content="/og-image.png"/>
 
@@ -26,7 +26,7 @@
 
     <style>
       /* ================================================================
-         Design tokens — mirror the bugsift dashboard's globals.css
+         Design tokens - mirror the bugsift dashboard's globals.css
          ================================================================ */
       :root {
         --background: #fffbf5;
@@ -612,7 +612,7 @@
               <li><strong>Auto-PR bots</strong> that write code you never reviewed and open pull requests with no context.</li>
               <li><strong>Hosted SaaS triage</strong> that pipes every issue body and GitHub token through someone else's cluster.</li>
               <li><strong>Chat-based agents</strong> that require you to prompt them back and forth for each issue.</li>
-              <li><strong>Static classifiers</strong> that are as good on day 90 as day 1 — they never learn your team's voice.</li>
+              <li><strong>Static classifiers</strong> that are as good on day 90 as day 1 - they never learn your team's voice.</li>
             </ul>
           </div>
           <div class="problem-card good">
@@ -645,7 +645,7 @@
           <div class="step">
             <span class="num">1</span>
             <h3>Classify</h3>
-            <p>bug · feature-request · question · docs · spam · other — with confidence. PII redacted before the prompt.</p>
+            <p>bug · feature-request · question · docs · spam · other - with confidence. PII redacted before the prompt.</p>
           </div>
           <div class="step">
             <span class="num">2</span>
@@ -655,7 +655,7 @@
           <div class="step">
             <span class="num">3</span>
             <h3>Retrieve</h3>
-            <p>Points at the 3–5 most likely relevant files — with line ranges and deep links. Refined post-repro by traceback paths.</p>
+            <p>Points at the 3–5 most likely relevant files - with line ranges and deep links. Refined post-repro by traceback paths.</p>
           </div>
           <div class="step">
             <span class="num">4</span>
@@ -677,7 +677,7 @@
         <div class="section-head">
           <span class="kicker">What you get</span>
           <h2>Everything around the model, built in.</h2>
-          <p>bugsift isn't just a classifier. It's the orchestrator, the sandbox, the audit log, the RBAC, the metrics, and the dashboard — so the model is the only piece you bring.</p>
+          <p>bugsift isn't just a classifier. It's the orchestrator, the sandbox, the audit log, the RBAC, the metrics, and the dashboard - so the model is the only piece you bring.</p>
         </div>
 
         <div class="feature-grid">
@@ -694,7 +694,7 @@
           <div class="feature">
             <div class="feature-ic">🛡️</div>
             <h3>PII scrubbed pre-LLM</h3>
-            <p>Emails, phones, SSN, credit cards, provider API keys, JWTs — redacted before any prompt touches the model. Stable tokens preserve referential integrity.</p>
+            <p>Emails, phones, SSN, credit cards, provider API keys, JWTs - redacted before any prompt touches the model. Stable tokens preserve referential integrity.</p>
           </div>
           <div class="feature">
             <div class="feature-ic">📡</div>
@@ -704,7 +704,7 @@
           <div class="feature">
             <div class="feature-ic">📊</div>
             <h3>Metrics + cost dashboard</h3>
-            <p>Throughput, LLM spend by provider/model/step, approval rate, PII scrub rate, SLA compliance — all in one admin page. Export to CSV.</p>
+            <p>Throughput, LLM spend by provider/model/step, approval rate, PII scrub rate, SLA compliance - all in one admin page. Export to CSV.</p>
           </div>
           <div class="feature">
             <div class="feature-ic">👥</div>
@@ -761,7 +761,7 @@
             <span class="tick">✓</span>
             <div>
               <h3>Every secret Fernet-encrypted at rest</h3>
-              <p>GitHub App PEM, OAuth client secret, webhook secret, your LLM keys, Slack webhook URLs, Jira API tokens — all encrypted with a master key that never ships in logs.</p>
+              <p>GitHub App PEM, OAuth client secret, webhook secret, your LLM keys, Slack webhook URLs, Jira API tokens - all encrypted with a master key that never ships in logs.</p>
             </div>
           </div>
           <div class="sec-item">
@@ -782,7 +782,7 @@
             <span class="tick">✓</span>
             <div>
               <h3>PII redaction before every LLM call</h3>
-              <p>Emails, phones, SSN, Luhn-valid cards, provider API keys, JWTs, URL credentials — scrubbed with stable hashed tokens so the LLM never sees sensitive data.</p>
+              <p>Emails, phones, SSN, Luhn-valid cards, provider API keys, JWTs, URL credentials - scrubbed with stable hashed tokens so the LLM never sees sensitive data.</p>
             </div>
           </div>
           <div class="sec-item">
@@ -796,7 +796,7 @@
             <span class="tick">✓</span>
             <div>
               <h3>Append-only audit trail</h3>
-              <p>Every login, role change, approve, key rotation, and App register/delete is recorded — CSV-exportable for SOC 2 auditors or your compliance team.</p>
+              <p>Every login, role change, approve, key rotation, and App register/delete is recorded - CSV-exportable for SOC 2 auditors or your compliance team.</p>
             </div>
           </div>
         </div>
@@ -851,7 +851,7 @@
           </div>
 
           <p class="muted" style="margin-top:28px; font-size:14px;">
-            Want to pin a specific release for reproducibility? Every release publishes <code>install.sh</code> and <code>docker-compose.prod.yml</code> — use <code>BUGSIFT_IMAGE_TAG=v0.1.0</code> to lock your deployment. Full self-host guide including backups and TLS via Caddy: <a href="https://github.com/joym-gits/bugsift/blob/main/deploy/README.md" target="_blank" rel="noopener">deploy/README.md</a>.
+            Want to pin a specific release for reproducibility? Every release publishes <code>install.sh</code> and <code>docker-compose.prod.yml</code> - use <code>BUGSIFT_IMAGE_TAG=v0.1.0</code> to lock your deployment. Full self-host guide including backups and TLS via Caddy: <a href="https://github.com/joym-gits/bugsift/blob/main/deploy/README.md" target="_blank" rel="noopener">deploy/README.md</a>.
           </p>
         </div>
       </div>
@@ -867,8 +867,8 @@
         <h2>bugsift is in beta. Try it, break it, tell me what's wrong.</h2>
         <p>
           I'm looking for early users to stress-test the pipeline on real repos and real
-          feedback streams. Install takes 5 minutes. If something breaks — or if something
-          works really well — ping me on Twitter. Every report shapes the next release.
+          feedback streams. Install takes 5 minutes. If something breaks - or if something
+          works really well - ping me on Twitter. Every report shapes the next release.
         </p>
         <div class="hero-ctas" style="justify-content:center;">
           <a class="btn btn-white" href="https://x.com/_joymukerjee" target="_blank" rel="noopener">
@@ -895,11 +895,11 @@
           </details>
           <details class="faq-item">
             <summary>Can I use it for private / commercial repositories?</summary>
-            <p>Yes. bugsift runs on your infrastructure. Your GitHub tokens, issue bodies, and operator decisions never touch a third-party SaaS. The licence is Apache 2.0 — use it for anything, commercial or otherwise.</p>
+            <p>Yes. bugsift runs on your infrastructure. Your GitHub tokens, issue bodies, and operator decisions never touch a third-party SaaS. The licence is Apache 2.0 - use it for anything, commercial or otherwise.</p>
           </details>
           <details class="faq-item">
             <summary>What does it cost?</summary>
-            <p>bugsift itself is free and open-source (Apache 2.0). You pay only for the LLM tokens your configured provider charges. Budget caps with graceful degradation ship in the box — when the monthly cap is reached, cheap steps (classify, comment) still run so cards still land, while expensive steps (dedup, retrieve, reproduce) are skipped and the card is flagged.</p>
+            <p>bugsift itself is free and open-source (Apache 2.0). You pay only for the LLM tokens your configured provider charges. Budget caps with graceful degradation ship in the box - when the monthly cap is reached, cheap steps (classify, comment) still run so cards still land, while expensive steps (dedup, retrieve, reproduce) are skipped and the card is flagged.</p>
           </details>
           <details class="faq-item">
             <summary>Do I need a cloud account?</summary>
@@ -915,11 +915,11 @@
           </details>
           <details class="faq-item">
             <summary>How does it get better over time?</summary>
-            <p>Every approve / skip / edit writes a <em>correction</em> row — the delta between what the pipeline suggested and what you actually did. The next triage run on the same repo reads the most recent corrections and injects them into the classify and comment prompts as "operator guidance." So triage decision #100 compounds every override you made on decisions #1–99.</p>
+            <p>Every approve / skip / edit writes a <em>correction</em> row - the delta between what the pipeline suggested and what you actually did. The next triage run on the same repo reads the most recent corrections and injects them into the classify and comment prompts as "operator guidance." So triage decision #100 compounds every override you made on decisions #1–99.</p>
           </details>
           <details class="faq-item">
             <summary>Can I customise the prompts or pipeline?</summary>
-            <p>Yes. The orchestrator lives in <code>backend/src/bugsift/agent/</code> and is deliberately ~300 lines of straight Python — no framework, no magic. Prompts are Jinja2 templates in <code>agent/prompts/</code>. Fork, edit, rebuild, ship your own images.</p>
+            <p>Yes. The orchestrator lives in <code>backend/src/bugsift/agent/</code> and is deliberately ~300 lines of straight Python - no framework, no magic. Prompts are Jinja2 templates in <code>agent/prompts/</code>. Fork, edit, rebuild, ship your own images.</p>
           </details>
           <details class="faq-item">
             <summary>How do I upgrade?</summary>

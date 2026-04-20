@@ -29,11 +29,11 @@ curl -fsSL https://bugsift.dev/install | bash
 
 ## Files
 
-- `public/index.html` — the landing page (single file, inline CSS, no build step).
-- `public/favicon.svg` — favicon.
-- `public/og-image.svg` — source for the OG preview. Export to `og-image.png` at
+- `public/index.html` - the landing page (single file, inline CSS, no build step).
+- `public/favicon.svg` - favicon.
+- `public/og-image.svg` - source for the OG preview. Export to `og-image.png` at
   1200×630 for best compatibility. Any SVG → PNG tool works (`rsvg-convert`,
   CloudConvert, screenshot, etc.).
-- `firebase.json` — hosting config (cache headers, security headers, rewrite).
-- `.firebaserc` — Firebase project binding. Replace the placeholder with your
+- `firebase.json` - hosting config (cache headers, security headers, rewrite).
+- `.firebaserc` - Firebase project binding. Replace the placeholder with your
   project ID, or run `firebase use --add`.
