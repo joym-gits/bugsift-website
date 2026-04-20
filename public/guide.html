@@ -1,0 +1,1135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>bugsift - complete setup guide</title>
+    <meta name="description" content="Step-by-step guide from a blank laptop to triaging real GitHub issues with bugsift. Install, register the GitHub App, add an LLM key, configure routing rules, deploy beyond localhost, troubleshoot."/>
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content="bugsift - complete setup guide"/>
+    <meta property="og:description" content="Everything you need from a blank laptop to triaging real GitHub issues. 10-15 minutes."/>
+    <meta property="og:image" content="/og-image.png"/>
+    <meta property="og:url" content="https://bugsift-beta.web.app/guide"/>
+
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="bugsift - complete setup guide"/>
+    <meta name="twitter:description" content="From install to first triage card in 10-15 minutes."/>
+    <meta name="twitter:image" content="/og-image.png"/>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+    <style>
+      :root {
+        --background: #fffbf5;
+        --background-alt: #fff5e9;
+        --foreground: #1c1917;
+        --muted: #f5f0eb;
+        --muted-foreground: #6b6259;
+        --border: #e7e5e4;
+        --card: #ffffff;
+
+        --primary: #c2410c;
+        --primary-bright: #ea7a1c;
+        --primary-fg: #ffffff;
+        --accent-bg: #fff0e5;
+        --accent-fg: #9a3412;
+
+        --success: #15803d;
+        --info: #1d4ed8;
+        --warning: #b45309;
+        --destructive: #b91c1c;
+
+        --radius: 10px;
+        --elev-1: 0 1px 2px 0 rgba(28, 20, 17, 0.05);
+        --elev-2: 0 4px 12px -2px rgba(28, 20, 17, 0.08), 0 1px 2px 0 rgba(28, 20, 17, 0.04);
+
+        --max: 1120px;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        letter-spacing: -0.005em;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      a { color: var(--primary); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      code, pre, .mono {
+        font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+
+      h1, h2, h3, h4 { letter-spacing: -0.02em; margin: 0; }
+      h1 { font-size: clamp(2.25rem, 4vw, 3rem); font-weight: 700; line-height: 1.1; }
+      h2 { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; line-height: 1.2; }
+      h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.3; }
+      h4 { font-size: 1rem; font-weight: 600; line-height: 1.35; }
+
+      .container {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ================= NAV (mirrors index.html) ================= */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 251, 245, 0.85);
+        backdrop-filter: saturate(180%) blur(10px);
+        -webkit-backdrop-filter: saturate(180%) blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav .container {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: -0.03em;
+        color: var(--foreground);
+      }
+      .logo .dot {
+        width: 6px; height: 6px;
+        background: var(--primary);
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 1px 14px 1px;
+      }
+      .nav-links {
+        display: none;
+        gap: 28px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .nav-links a { color: var(--muted-foreground); }
+      .nav-links a:hover { color: var(--foreground); text-decoration: none; }
+      .nav-links a.active { color: var(--foreground); }
+      .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 14px;
+        background: var(--foreground);
+        color: #fff;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 500;
+      }
+      .nav-cta:hover { text-decoration: none; opacity: 0.9; }
+      @media (min-width: 760px) { .nav-links { display: flex; } }
+
+      /* ================= DOC HEADER ================= */
+      .doc-header {
+        padding: 64px 0 32px;
+        border-bottom: 1px solid var(--border);
+        background:
+          radial-gradient(ellipse 80% 60% at 20% 0%, rgba(234, 122, 28, 0.10), transparent 70%),
+          var(--background);
+      }
+      .doc-header .kicker {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--primary);
+        margin-bottom: 16px;
+      }
+      .doc-header h1 { max-width: 820px; }
+      .doc-header .subtitle {
+        color: var(--muted-foreground);
+        font-size: 1.125rem;
+        margin: 16px 0 0;
+        max-width: 740px;
+      }
+      .doc-header .meta {
+        margin-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .doc-header .meta .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        border-radius: 999px;
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--muted-foreground);
+      }
+      .doc-header .meta .pill strong { color: var(--foreground); font-weight: 600; }
+
+      /* ================= DOC LAYOUT ================= */
+      .doc-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 48px;
+        padding: 48px 0 80px;
+      }
+      @media (min-width: 960px) {
+        .doc-layout { grid-template-columns: 240px minmax(0, 1fr); gap: 56px; }
+      }
+
+      /* TOC */
+      .doc-toc {
+        font-size: 13.5px;
+      }
+      @media (min-width: 960px) {
+        .doc-toc {
+          position: sticky;
+          top: 88px;
+          align-self: start;
+          max-height: calc(100vh - 96px);
+          overflow-y: auto;
+          padding-right: 8px;
+        }
+      }
+      .doc-toc h4 {
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted-foreground);
+        margin-bottom: 12px;
+      }
+      .doc-toc ol {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px;
+        counter-reset: toc-counter;
+      }
+      .doc-toc ol li {
+        counter-increment: toc-counter;
+        padding: 4px 0;
+      }
+      .doc-toc ol li a {
+        color: var(--muted-foreground);
+        display: block;
+        padding: 2px 0;
+      }
+      .doc-toc ol li a:hover {
+        color: var(--foreground);
+        text-decoration: none;
+      }
+
+      /* Content */
+      .doc-content {
+        max-width: 760px;
+        min-width: 0;
+      }
+      .doc-content section { padding: 0; margin-bottom: 56px; }
+      .doc-content section:last-child { margin-bottom: 0; }
+
+      .doc-content h2 {
+        margin-top: 0;
+        margin-bottom: 14px;
+        scroll-margin-top: 88px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .doc-content h3 {
+        margin-top: 36px;
+        margin-bottom: 10px;
+        scroll-margin-top: 88px;
+      }
+      .doc-content h4 {
+        margin-top: 28px;
+        margin-bottom: 8px;
+        color: var(--foreground);
+      }
+      .doc-content p {
+        margin: 0 0 16px;
+      }
+      .doc-content ul, .doc-content ol {
+        margin: 0 0 16px;
+        padding-left: 24px;
+      }
+      .doc-content li { margin-bottom: 6px; }
+      .doc-content li > ul, .doc-content li > ol { margin-top: 6px; margin-bottom: 6px; }
+
+      .doc-content strong { font-weight: 600; color: var(--foreground); }
+      .doc-content em { font-style: italic; }
+
+      /* Inline code */
+      .doc-content :not(pre) > code {
+        background: var(--muted);
+        border: 1px solid var(--border);
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 0.88em;
+        color: var(--accent-fg);
+      }
+
+      /* Code blocks */
+      .doc-content pre {
+        background: #1c1917;
+        color: #f5f5f4;
+        padding: 16px 18px;
+        border-radius: 10px;
+        overflow-x: auto;
+        font-size: 13.5px;
+        line-height: 1.55;
+        margin: 0 0 20px;
+        box-shadow: var(--elev-1);
+      }
+      .doc-content pre code {
+        background: transparent;
+        border: 0;
+        padding: 0;
+        color: inherit;
+        font-size: inherit;
+      }
+
+      /* Tables */
+      .doc-content .table-wrap {
+        overflow-x: auto;
+        margin: 0 0 20px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--card);
+      }
+      .doc-content table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      .doc-content th, .doc-content td {
+        text-align: left;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .doc-content th {
+        background: var(--background-alt);
+        font-weight: 600;
+        font-size: 12.5px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+      }
+      .doc-content tr:last-child td { border-bottom: 0; }
+
+      /* Callouts (blockquote equivalents) */
+      .callout {
+        padding: 14px 16px;
+        margin: 0 0 20px;
+        border-left: 3px solid var(--primary-bright);
+        background: var(--accent-bg);
+        border-radius: 0 8px 8px 0;
+        font-size: 14.5px;
+        color: var(--foreground);
+      }
+      .callout.warn {
+        border-left-color: var(--destructive);
+        background: #fdf2f2;
+      }
+      .callout p { margin: 0 0 8px; }
+      .callout p:last-child { margin-bottom: 0; }
+      .callout strong { color: var(--foreground); }
+
+      hr {
+        border: 0;
+        border-top: 1px solid var(--border);
+        margin: 56px 0;
+      }
+
+      /* Anchor link affordance on headings */
+      .doc-content h2 a.anchor,
+      .doc-content h3 a.anchor {
+        color: var(--muted-foreground);
+        opacity: 0;
+        font-weight: 400;
+        margin-left: 8px;
+        transition: opacity 0.15s;
+        font-size: 0.8em;
+      }
+      .doc-content h2:hover a.anchor,
+      .doc-content h3:hover a.anchor { opacity: 1; }
+
+      /* ================= FOOTER (mirrors index.html) ================= */
+      .footer {
+        padding: 48px 0 32px;
+        border-top: 1px solid var(--border);
+        background: var(--background);
+      }
+      .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .footer .left { color: var(--muted-foreground); font-size: 14px; }
+      .footer-links { display: flex; gap: 22px; font-size: 14px; }
+      .footer-links a { color: var(--muted-foreground); }
+      .footer-links a:hover { color: var(--foreground); }
+    </style>
+  </head>
+
+  <body>
+    <!-- =================== NAV =================== -->
+    <nav class="nav">
+      <div class="container">
+        <a class="logo" href="/">bugs<span class="dot"></span>ft</a>
+        <div class="nav-links">
+          <a href="/#problem">Problem</a>
+          <a href="/#how">How it works</a>
+          <a href="/#features">Features</a>
+          <a href="/#security">Security</a>
+          <a class="active" href="/guide">Guide</a>
+        </div>
+        <a class="nav-cta" href="https://github.com/joym-gits/bugsift" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .3C5.4.3 0 5.7 0 12.3c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2 0 1.9 1.2 1.9 1.2 1.1 1.9 2.8 1.4 3.5 1 .1-.8.4-1.4.8-1.7-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2.9-.3 2-.4 3-.4s2 .1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.7-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6C20.6 22.1 24 17.6 24 12.3 24 5.7 18.6.3 12 .3z"/></svg>
+          Star on GitHub
+        </a>
+      </div>
+    </nav>
+
+    <!-- =================== HEADER =================== -->
+    <header class="doc-header">
+      <div class="container">
+        <span class="kicker">Documentation</span>
+        <h1>Complete setup guide</h1>
+        <p class="subtitle">
+          Everything you need from a blank laptop to triaging real GitHub issues.
+          Install, register the App, add an LLM key, configure rules, deploy,
+          troubleshoot.
+        </p>
+        <div class="meta">
+          <span class="pill"><strong>Time:</strong> 10-15 min</span>
+          <span class="pill"><strong>Requires:</strong> Docker 24+ and ~2 GB RAM</span>
+          <span class="pill"><strong>Covers:</strong> bugsift v0.1+</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- =================== LAYOUT =================== -->
+    <div class="container doc-layout">
+
+      <!-- ============== TOC ============== -->
+      <aside class="doc-toc">
+        <h4>On this page</h4>
+        <ol>
+          <li><a href="#before">Before you begin</a></li>
+          <li><a href="#install">Part 1 - Install</a></li>
+          <li><a href="#register">Part 2 - Register GitHub App</a></li>
+          <li><a href="#signin">Part 3 - Sign in / install on a repo</a></li>
+          <li><a href="#key">Part 4 - Add an LLM key</a></li>
+          <li><a href="#configure">Part 5 - Configure a repo</a></li>
+          <li><a href="#first">Part 6 - First triage card</a></li>
+          <li><a href="#integrations">Part 7 - Integrations</a></li>
+          <li><a href="#rules">Part 8 - Routing rules + SLA</a></li>
+          <li><a href="#admin">Part 9 - Admin features</a></li>
+          <li><a href="#deploy">Part 10 - Beyond localhost</a></li>
+          <li><a href="#ops">Part 11 - Day-to-day ops</a></li>
+          <li><a href="#troubleshooting">Part 12 - Troubleshooting</a></li>
+          <li><a href="#uninstall">Part 13 - Uninstall</a></li>
+          <li><a href="#envvars">Appendix - Env vars</a></li>
+        </ol>
+      </aside>
+
+      <!-- ============== CONTENT ============== -->
+      <article class="doc-content">
+
+        <div class="callout">
+          <p><strong>In a rush?</strong> The one-line install is <code>curl -fsSL https://github.com/joym-gits/bugsift/releases/latest/download/install.sh | bash</code>. Everything below explains what that command does, what happens next, and how to recover if anything breaks.</p>
+        </div>
+
+        <!-- ============== Before you begin ============== -->
+        <section id="before">
+          <h2>Before you begin</h2>
+
+          <h3>What you're installing</h3>
+          <ul>
+            <li><strong>Backend</strong> - FastAPI + Postgres + Redis + a worker that runs the triage pipeline.</li>
+            <li><strong>Frontend</strong> - A Next.js dashboard served at <code>http://localhost:8080</code>.</li>
+            <li><strong>Sandbox</strong> - A scoped Docker proxy + per-reproduction ephemeral containers.</li>
+            <li><strong>Everything runs as Docker containers on your machine.</strong> Nothing is uploaded anywhere except outbound calls you configure (LLM provider, Slack, Jira).</li>
+          </ul>
+
+          <h3>Prerequisites</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Requirement</th><th>Minimum</th><th>How to verify</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>OS</td><td>Linux, macOS, or Windows + WSL2</td><td><code>uname -a</code></td></tr>
+                <tr><td>Docker</td><td>24.x or later</td><td><code>docker --version</code></td></tr>
+                <tr><td>Docker Compose plugin</td><td>Modern (<code>compose</code>, not <code>docker-compose</code>)</td><td><code>docker compose version</code></td></tr>
+                <tr><td>RAM</td><td>2 GB free</td><td><code>free -m</code> or Activity Monitor</td></tr>
+                <tr><td>Disk</td><td>5 GB free</td><td><code>df -h</code></td></tr>
+                <tr><td>CPU</td><td>Any 64-bit (amd64 or arm64)</td><td><code>uname -m</code></td></tr>
+                <tr><td>Network</td><td>Outbound HTTPS to <code>github.com</code>, <code>ghcr.io</code>, your LLM provider</td><td><code>curl -I https://ghcr.io</code></td></tr>
+                <tr><td>Port 8080 free</td><td>Not already bound</td><td><code>lsof -i :8080</code> (empty output = OK)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout">
+            <p><strong>macOS users:</strong> install <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">Docker Desktop</a>, launch it, and wait until the whale icon stops animating before running the installer.</p>
+            <p><strong>Linux users:</strong> make sure your user is in the <code>docker</code> group so <code>docker</code> commands work without <code>sudo</code>: <code>sudo usermod -aG docker $USER &amp;&amp; newgrp docker</code>.</p>
+            <p><strong>Windows users:</strong> install Docker Desktop with the WSL2 backend; run everything from an Ubuntu (or similar) WSL shell, not PowerShell.</p>
+          </div>
+
+          <h3>Pre-flight check</h3>
+          <p>Before you run the installer, paste this one-liner. It should print <strong>all OK</strong> at the end:</p>
+<pre><code>command -v docker &gt;/dev/null &amp;&amp; echo "docker: $(docker --version)" \
+ &amp;&amp; docker compose version &gt;/dev/null &amp;&amp; echo "compose: OK" \
+ &amp;&amp; docker info &gt;/dev/null 2&gt;&amp;1 &amp;&amp; echo "daemon: running" \
+ &amp;&amp; command -v curl &gt;/dev/null &amp;&amp; echo "curl: OK" \
+ &amp;&amp; command -v openssl &gt;/dev/null &amp;&amp; echo "openssl: OK" \
+ &amp;&amp; echo "all OK"</code></pre>
+          <p>If any line fails, fix that before continuing - the installer will refuse to start otherwise.</p>
+        </section>
+
+        <!-- ============== Part 1 - Install ============== -->
+        <section id="install">
+          <h2>Part 1 - Install bugsift</h2>
+
+          <h3>Step 1.1 - Pick where to install</h3>
+          <p>The installer creates a <code>bugsift/</code> directory in whatever folder you run it from. Choose a location you can find later:</p>
+<pre><code>cd ~                    # or wherever you keep services</code></pre>
+
+          <h3>Step 1.2 - Run the installer</h3>
+<pre><code>curl -fsSL https://github.com/joym-gits/bugsift/releases/latest/download/install.sh | bash</code></pre>
+          <p>This takes 30 seconds to 3 minutes depending on your connection (most of the time is pulling Docker images - ~800 MB first time). You'll see output like:</p>
+<pre><code>bugsift installer
+  target: /home/you/bugsift
+  downloading docker-compose.yml
+  ✓ docker-compose.yml written
+  generating secrets + .env
+  ✓ .env written
+  pulling images
+  ...
+  running database migrations
+  ...
+  starting stack
+
+✓ bugsift is up
+  dashboard:       http://localhost:8080
+  bootstrap token: TyAakHeOSiq4C_P14l4jrXEYYfWyOAtCcHescirNwyw
+  env file:        /home/you/bugsift/.env</code></pre>
+
+          <h3>Step 1.3 - Save the bootstrap token</h3>
+          <p><strong>Copy the bootstrap token</strong> printed at the end. You'll need it in Part 2. It's also saved in <code>~/bugsift/.env</code> under <code>BUGSIFT_BOOTSTRAP_TOKEN</code> if you forget.</p>
+
+          <h3>Step 1.4 - Verify everything is running</h3>
+<pre><code>cd ~/bugsift
+docker compose ps</code></pre>
+          <p>You should see seven containers, all <code>Up</code>:</p>
+<pre><code>bugsift-backend-1      Up
+bugsift-docker-proxy-1 Up
+bugsift-frontend-1     Up
+bugsift-nginx-1        Up
+bugsift-postgres-1     Up (healthy)
+bugsift-redis-1        Up (healthy)
+bugsift-worker-1       Up</code></pre>
+          <p>If any container is <code>Exited</code> or <code>Restarting</code>, jump to <a href="#troubleshooting">Part 12 - Troubleshooting</a>.</p>
+
+          <h3>Step 1.5 - Open the dashboard</h3>
+          <p>Open <a href="http://localhost:8080" target="_blank" rel="noopener">http://localhost:8080</a> in your browser. You should see the bugsift landing page with a "Get started" button.</p>
+          <div class="callout">
+            <p><strong>Running on a remote server?</strong> Replace <code>localhost</code> with the server's public IP. If the page doesn't load, check your firewall allows inbound port 8080 (<code>sudo ufw allow 8080</code> on Ubuntu). Better: jump to <a href="#deploy">Part 10</a> to set up a real domain with TLS.</p>
+          </div>
+        </section>
+
+        <!-- ============== Part 2 - Register ============== -->
+        <section id="register">
+          <h2>Part 2 - Register the GitHub App</h2>
+          <p>bugsift needs its own GitHub App to receive webhooks and post comments. You register it once; bugsift handles everything else (client secret, webhook secret, PEM key) encrypted in its own database.</p>
+
+          <h3>Step 2.1 - Start onboarding</h3>
+          <p>Click <strong>Get started</strong> on the landing page, or navigate directly to <code>http://localhost:8080/onboarding</code>. You'll see <strong>Step 1 - Register your GitHub App</strong>.</p>
+
+          <h3>Step 2.2 - Make sure you're logged into GitHub</h3>
+          <p><strong>Before</strong> clicking Register, open a tab to <a href="https://github.com" target="_blank" rel="noopener">github.com</a> and confirm you're signed in as the account that will own the App. If you're not signed in, GitHub's manifest flow 500s with a confusing error.</p>
+
+          <h3>Step 2.3 - Click Register GitHub App</h3>
+          <p>The first click opens a dialog asking for your <strong>bootstrap token</strong> (the one from Step 1.3 - required when bugsift runs in production mode).</p>
+          <div class="callout">
+            <p>If <code>curl | bash</code> installed with <code>BUGSIFT_ENV=development</code> instead, this step is skipped. That's fine for localhost dev; just click through.</p>
+          </div>
+          <p>Paste the token and click Register again.</p>
+
+          <h3>Step 2.4 - Complete GitHub's manifest flow</h3>
+          <p>A new tab opens on <code>github.com/settings/apps/new?state=...</code> with a pre-filled manifest. GitHub asks you to:</p>
+          <ol>
+            <li>Confirm the App name (bugsift auto-adds a suffix if the base name is taken).</li>
+            <li>Confirm ownership (personal account vs. organisation).</li>
+            <li>Click <strong>Create GitHub App</strong>.</li>
+          </ol>
+          <p>GitHub redirects back to bugsift with a temporary code. bugsift exchanges it for the App credentials, encrypts them with your Fernet key, and stores them. The onboarding page auto-advances to <strong>Step 2 - Install the App</strong>.</p>
+          <div class="callout">
+            <p><strong>The onboarding tab didn't update?</strong> GitHub's redirect ended up in the background tab. Switch to it; if it still shows "Waiting on GitHub...", refresh - bugsift's callback has already fired by then.</p>
+          </div>
+        </section>
+
+        <!-- ============== Part 3 - Sign in ============== -->
+        <section id="signin">
+          <h2>Part 3 - Sign in and install on a repo</h2>
+
+          <h3>Step 3.1 - Sign in with GitHub</h3>
+          <p>Click <strong>Sign in with GitHub</strong> at the top-right of the dashboard. Standard OAuth flow: authorise bugsift to read your profile email. You'll be redirected back as a signed-in user.</p>
+          <p><strong>You are now an admin.</strong> The first user on a fresh deployment is automatically granted the admin role. Later users default to <code>triager</code> and can be promoted from the Admin &rarr; Users page.</p>
+
+          <h3>Step 3.2 - Install the App on a repo</h3>
+          <p>From <strong>Step 2</strong> of onboarding (or the GitHub settings page at <code>/github</code>):</p>
+          <ol>
+            <li>Click <strong>Install on a repo</strong>.</li>
+            <li>GitHub asks which account and which repos to install on.</li>
+            <li>Pick a test repo first - ideally one you own and that has a few open issues, so you can verify triage without waiting for new ones. If you want bugsift to ingest historical issues for dedup, pick one with at least 20-30 closed issues.</li>
+            <li>Click <strong>Install</strong>.</li>
+          </ol>
+          <p>GitHub redirects back to bugsift. The installation is now linked to your user.</p>
+
+          <h3>Step 3.3 - Verify</h3>
+          <p>Go to <strong>Queue</strong> (the default landing page for signed-in users). You won't see any cards yet - that's expected. In the sidebar, under <strong>Installed repos</strong>, the repo you just installed on should appear. Under <strong>Onboarding</strong>, Steps 1 and 2 should be green-ticked.</p>
+        </section>
+
+        <!-- ============== Part 4 - LLM key ============== -->
+        <section id="key">
+          <h2>Part 4 - Add an LLM API key</h2>
+          <p>bugsift is BYOK (bring your own key). The pipeline only runs against your key, so you choose the provider, pay only for your own usage, and keep the data on keys you trust.</p>
+
+          <h3>Step 4.1 - Choose a provider</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Provider</th><th>Best for</th><th>Get a key</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Anthropic (Claude)</strong></td><td>Default. Highest triage accuracy in our golden set.</td><td><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a></td></tr>
+                <tr><td><strong>OpenAI (GPT-4o)</strong></td><td>Fastest classification.</td><td><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a></td></tr>
+                <tr><td><strong>Google (Gemini)</strong></td><td>Cheapest per token at scale.</td><td><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com/app/apikey</a></td></tr>
+                <tr><td><strong>Ollama</strong></td><td>Fully local, zero third-party calls, free. Requires a GPU for sensible speed.</td><td><a href="https://ollama.com/download" target="_blank" rel="noopener">ollama.com</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>If you're not sure, pick <strong>Anthropic</strong> - it's the default model bugsift validates against.</p>
+
+          <h3>Step 4.2 - Create a key on the provider's side</h3>
+          <p>Follow the provider's docs. For Anthropic specifically:</p>
+          <ol>
+            <li>Visit the <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">API Keys page</a>.</li>
+            <li>Click <strong>Create Key</strong>.</li>
+            <li>Copy the key (starts with <code>sk-ant-api03-...</code>). You won't see it again.</li>
+            <li>Fund your account or use the free tier - Anthropic gives a small free credit to new accounts.</li>
+          </ol>
+
+          <h3>Step 4.3 - Add the key to bugsift</h3>
+          <p>In the dashboard:</p>
+          <ol>
+            <li>Click <strong>Settings</strong> in the left sidebar.</li>
+            <li>Scroll to <strong>LLM provider keys</strong>.</li>
+            <li>Pick your provider from the dropdown.</li>
+            <li>Paste the key.</li>
+            <li>Click <strong>Save</strong>.</li>
+          </ol>
+          <p>The key is encrypted at rest using your Fernet key before it's stored in Postgres.</p>
+
+          <h3>Step 4.4 - Test the key</h3>
+          <p>On the same page, click <strong>Test</strong> next to the saved key. You should see <code>✓ looks good · latency 350 ms</code> or similar. If it fails, the error message tells you whether it was a bad key, the wrong endpoint, or a rate-limit issue.</p>
+          <div class="callout">
+            <p><strong>Using Ollama?</strong> In <code>.env</code> (in <code>~/bugsift/.env</code>) set <code>OLLAMA_BASE_URL=http://host.docker.internal:11434</code> (macOS/Windows) or your host's LAN IP (Linux - <code>host.docker.internal</code> isn't available by default). Restart the backend: <code>docker compose restart backend worker</code>. Then add the key in the dashboard with any placeholder value (Ollama itself doesn't auth).</p>
+          </div>
+        </section>
+
+        <!-- ============== Part 5 - Configure a repo ============== -->
+        <section id="configure">
+          <h2>Part 5 - Configure a repo</h2>
+          <p>Each installed repo can be configured independently.</p>
+
+          <h3>Step 5.1 - Open the repo settings</h3>
+          <p>On <strong>Onboarding &rarr; Step 3</strong> (or via <strong>GitHub &rarr; {your repo} &rarr; Configure</strong>).</p>
+
+          <h3>Step 5.2 - Choose a mode</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Mode</th><th>Behaviour</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>dry-run</strong> <em>(default, recommended)</em></td><td>Every card lands in the dashboard; you approve, edit, or skip each one. Nothing is posted to GitHub until you click Approve.</td></tr>
+                <tr><td><strong>auto</strong></td><td>Allow-listed actions (confirmed duplicates, needs-info replies) execute without approval. Other actions still require approval.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Start with <strong>dry-run</strong> until you trust the pipeline on your repo.</p>
+
+          <h3>Step 5.3 - Set a monthly budget</h3>
+          <p>The default is <strong>$10/month</strong> per repo. When that's hit, cheap steps (classify, draft comment) keep running so cards still land, but expensive steps (dedup, retrieve, reproduce) are skipped. The card shows a "budget exhausted" badge.</p>
+          <p>Adjust in the same settings panel.</p>
+
+          <h3>Step 5.4 - Tone + label map (optional)</h3>
+          <ul>
+            <li><strong>Tone</strong> - <code>professional</code>, <code>friendly</code>, or <code>concise</code>. Affects the drafted comment's voice.</li>
+            <li><strong>Label map</strong> - translates bugsift's internal labels (<code>bug</code>, <code>needs-info</code>, <code>duplicate</code>, etc.) to the exact label strings your repo uses (<code>kind/bug</code>, <code>status/needs-info</code>, etc.). Skip this until you've seen a few cards to know which labels you actually want.</li>
+          </ul>
+        </section>
+
+        <!-- ============== Part 6 - First triage card ============== -->
+        <section id="first">
+          <h2>Part 6 - Your first triage card</h2>
+
+          <h3>Step 6.1 - Open an issue</h3>
+          <p>On the repo you installed bugsift on, open a new issue. You can:</p>
+          <ul>
+            <li>Manually create one via github.com.</li>
+            <li>Or wait for a real user-opened issue.</li>
+            <li>Or backfill: <strong>GitHub &rarr; {repo} &rarr; Backfill</strong> pulls recent closed issues so there's historical data for dedup to work against.</li>
+          </ul>
+
+          <h3>Step 6.2 - Wait ~90 seconds</h3>
+          <p>bugsift's webhook receives the issue, enqueues a triage job, and the worker runs the pipeline (classify &rarr; dedup &rarr; retrieve &rarr; reproduce &rarr; draft). Refresh the <strong>Queue</strong> page; a card should appear.</p>
+
+          <h3>Step 6.3 - Read the card</h3>
+          <p>A card tile shows at a glance:</p>
+          <ul>
+            <li>Repo · issue number</li>
+            <li>Classification + confidence (e.g. <code>bug 0.91</code>)</li>
+            <li>Severity pill (<code>blocker</code> / <code>high</code> / <code>medium</code> / <code>low</code>)</li>
+            <li>"PII scrubbed" pill if the redactor stripped anything</li>
+            <li>"Learning from N" pill if corrections from past approvals were applied</li>
+            <li>SLA badge if a routing rule set one</li>
+            <li>Relative time since creation</li>
+          </ul>
+          <p>Click the tile. A side sheet opens with the full card:</p>
+          <ul>
+            <li><strong>Rationale</strong> - why the classifier picked that category.</li>
+            <li><strong>Suspected files</strong> - top 3-5 likely-relevant files with line ranges and deep links.</li>
+            <li><strong>Reproduction verdict + log</strong> - if a repro was attempted, whether it reproduced and the last lines of output.</li>
+            <li><strong>Duplicates</strong> - any prior issues the dedup step flagged.</li>
+            <li><strong>Regression suspects</strong> - recent pushes that touched the suspected files.</li>
+            <li><strong>Suggested assignees</strong> - from CODEOWNERS (uncheck anyone you don't want assigned).</li>
+            <li><strong>Draft comment</strong> - editable before approval.</li>
+            <li><strong>Proposed labels</strong> - uncheck any you don't want applied.</li>
+          </ul>
+
+          <h3>Step 6.4 - Act</h3>
+          <ul>
+            <li><strong>Approve</strong> - posts the comment, applies labels, assigns selected users (and optionally creates a Jira ticket).</li>
+            <li><strong>Edit</strong> - change the draft, then Approve.</li>
+            <li><strong>Skip</strong> - no action on GitHub; the card moves to History with <code>skipped</code> status.</li>
+            <li><strong>Retry</strong> - if the pipeline short-circuited (e.g. you hadn't added the LLM key yet), rerun with fresh input.</li>
+          </ul>
+          <p>Every approve / skip / edit writes a <strong>correction</strong> row - on the next triage run for this repo, the classify and comment prompts include a "Recent operator guidance" block so the pipeline learns from your decisions.</p>
+        </section>
+
+        <!-- ============== Part 7 - Integrations ============== -->
+        <section id="integrations">
+          <h2>Part 7 - Optional integrations</h2>
+
+          <h3>Step 7.1 - Slack notifications</h3>
+          <ol>
+            <li>In Slack, create an <a href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noopener">Incoming Webhook</a> for the channel you want alerts in. Copy the URL (starts with <code>https://hooks.slack.com/services/...</code>).</li>
+            <li>In bugsift: <strong>Settings &rarr; Slack destinations &rarr; Add</strong>.</li>
+            <li>Paste the webhook URL, give it a name, pick which events to subscribe to (<code>new_card</code>, <code>approved</code>, <code>regression</code>, <code>sla_breach</code>).</li>
+            <li>Click <strong>Test</strong> - a sample message should land in the channel.</li>
+          </ol>
+
+          <h3>Step 7.2 - Jira destinations</h3>
+          <ol>
+            <li>In Atlassian, go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener">id.atlassian.com</a> &rarr; <strong>Create API token</strong>. Copy it.</li>
+            <li>In bugsift: <strong>Settings &rarr; Ticket destinations &rarr; Add</strong>.</li>
+            <li>Fill in:
+              <ul>
+                <li><strong>Site URL</strong> - <code>https://your-org.atlassian.net</code> (must be HTTPS, must be a public DNS name - SSRF guard rejects private IPs).</li>
+                <li><strong>Email</strong> - your Atlassian account email.</li>
+                <li><strong>API token</strong> - the one you just created.</li>
+                <li><strong>Default project key</strong> - e.g. <code>ENG</code>.</li>
+                <li><strong>Default issue type</strong> - usually <code>Bug</code>.</li>
+              </ul>
+            </li>
+            <li>bugsift validates the credentials against <code>/myself</code> before saving.</li>
+          </ol>
+          <p>Approved feedback-widget cards route to this destination when configured on the feedback app.</p>
+
+          <h3>Step 7.3 - Feedback widget</h3>
+          <p>bugsift can ingest free-form bug reports from your end-users via an embeddable widget.</p>
+          <ol>
+            <li><strong>Feedback apps &rarr; Register a new app.</strong></li>
+            <li>Pick a name, the target repo, and list the origins the widget will be embedded on (e.g. <code>https://app.example.com</code>). <strong>At least one origin is required</strong> - empty allowlists are refused.</li>
+            <li>Save. You get a <code>public_key</code> (prefix <code>pk_...</code>) and an HTML snippet like:</li>
+          </ol>
+<pre><code>&lt;script src="https://yourbugsift.example.com/api/widget.js"
+        data-app-key="pk_abc123" defer&gt;&lt;/script&gt;</code></pre>
+          <ol start="4">
+            <li>Drop the snippet into your product's HTML. End users see a small "Report a bug" button that opens a modal. Reports land on the bugsift queue, go through the same triage pipeline, and route to either GitHub or Jira when you approve.</li>
+          </ol>
+
+          <h3>Step 7.4 - CODEOWNERS for assignee suggestions</h3>
+          <p>If your repo has a <a href="https://docs.github.com/en/repositories/managing-your-repositories-settings-and-security/customizing-your-repository/about-code-owners" target="_blank" rel="noopener">CODEOWNERS</a> file, bugsift parses it and suggests assignees based on the suspected files on each card. Refresh the cache after editing CODEOWNERS:</p>
+          <p><strong>GitHub &rarr; {repo} &rarr; Refresh CODEOWNERS</strong></p>
+          <p>Or wait - bugsift refreshes automatically on every push to the default branch.</p>
+        </section>
+
+        <!-- ============== Part 8 - Rules ============== -->
+        <section id="rules">
+          <h2>Part 8 - Routing rules and SLA</h2>
+
+          <h3>Step 8.1 - Create a rule</h3>
+          <p><strong>Admin &rarr; Rules &rarr; New rule.</strong> Rules run after every card is classified and accumulate in priority order (lower number runs first).</p>
+          <p>Example rule - <strong>"Blocker bugs get paged to the security team"</strong>:</p>
+          <ul>
+            <li><strong>Name</strong>: Blocker bugs &rarr; sec-team + SLA 60 min</li>
+            <li><strong>Priority</strong>: 10</li>
+            <li><strong>Match</strong>:
+              <ul>
+                <li>Classification: <code>bug</code></li>
+                <li>Severity: <code>blocker</code></li>
+              </ul>
+            </li>
+            <li><strong>Then (actions)</strong>:
+              <ul>
+                <li>Assign: <code>@sec-engineer-1, @sec-engineer-2</code></li>
+                <li>Add labels: <code>security, needs-review</code></li>
+                <li>Notify Slack destination: <em>(pick the #incidents destination)</em></li>
+                <li>SLA minutes: <code>60</code></li>
+              </ul>
+            </li>
+          </ul>
+          <p>Click <strong>Create</strong>. The rule fires on the next card that matches.</p>
+
+          <h3>Step 8.2 - SLA tracking</h3>
+          <p>Any rule that sets <code>sla_minutes</code> attaches an SLA to matching cards. The SLA watcher (a background task inside the backend) runs every 60 seconds:</p>
+          <ul>
+            <li><strong>Before breach</strong>: tile shows a grey clock badge with time remaining (<code>SLA in 42m</code>). Amber when under 10% remaining.</li>
+            <li><strong>After breach</strong>: tile turns red (<code>breached 14m ago</code>), Slack fires a <code>sla_breach</code> event, audit log records <code>sla.breached</code>.</li>
+          </ul>
+          <p>The <strong>Admin &rarr; Metrics</strong> page shows SLA compliance % across the selected time window.</p>
+        </section>
+
+        <!-- ============== Part 9 - Admin ============== -->
+        <section id="admin">
+          <h2>Part 9 - Admin features</h2>
+          <p>Admin-only pages live in the <strong>Admin</strong> section of the sidebar.</p>
+
+          <h3>Step 9.1 - Users</h3>
+          <ul>
+            <li>List every user who's signed in on this deployment.</li>
+            <li>Change roles from the dropdown (<code>admin</code>, <code>triager</code>, <code>viewer</code>).</li>
+            <li>The last admin cannot demote themselves - promote someone else first.</li>
+          </ul>
+
+          <h3>Step 9.2 - Audit log</h3>
+          <p>Every security-relevant action is recorded append-only:</p>
+          <ul>
+            <li>User login, role changes.</li>
+            <li>Card approve / skip / edit.</li>
+            <li>API key create / delete.</li>
+            <li>GitHub App register / delete, install linked.</li>
+            <li>Rule / destination create / update / delete.</li>
+            <li>SLA breach.</li>
+          </ul>
+          <p>Filter by actor, action type, or target type. <strong>Export CSV</strong> dumps the matching rows for SOC 2 auditors or your compliance team.</p>
+
+          <h3>Step 9.3 - Metrics</h3>
+          <p>A single-page dashboard with a 7 / 14 / 30 / 90-day window selector:</p>
+          <ul>
+            <li>Cards created per day (sparkline).</li>
+            <li>LLM spend per day (sparkline).</li>
+            <li>Cost by provider / model / pipeline step.</li>
+            <li>Outcome mix (posted / skipped / pending) + approval rate.</li>
+            <li>PII scrub rate.</li>
+            <li>SLA compliance %.</li>
+            <li>Classification + severity breakdowns.</li>
+          </ul>
+        </section>
+
+        <!-- ============== Part 10 - Deploy ============== -->
+        <section id="deploy">
+          <h2>Part 10 - Deploying beyond localhost</h2>
+          <p>Localhost is fine for evaluating and for solo use. For a team deployment:</p>
+
+          <h3>Step 10.1 - Pick a host</h3>
+          <p>Any Linux VM with Docker works. Good options:</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Host</th><th>Cheapest tier</th><th>Good for</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><a href="https://www.hetzner.com/cloud" target="_blank" rel="noopener">Hetzner Cloud</a></td><td>CX21 · 2 vCPU · 4 GB · ~€5/mo</td><td>EU teams</td></tr>
+                <tr><td><a href="https://www.digitalocean.com" target="_blank" rel="noopener">DigitalOcean</a></td><td>Basic 2 GB · $12/mo</td><td>Global coverage</td></tr>
+                <tr><td><a href="https://www.linode.com" target="_blank" rel="noopener">Linode</a></td><td>Nanode 2 GB · $12/mo</td><td>Global coverage</td></tr>
+                <tr><td><a href="https://aws.amazon.com/lightsail/" target="_blank" rel="noopener">AWS Lightsail</a></td><td>2 GB · $10/mo</td><td>Already in AWS</td></tr>
+                <tr><td><a href="https://cloud.google.com/compute/vm-instance-pricing" target="_blank" rel="noopener">GCP e2-small</a></td><td>~$13/mo</td><td>Already in GCP</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Any 2 vCPU / 2 GB / 20 GB VM running Ubuntu 22.04+ or Debian 12+ works.</p>
+
+          <h3>Step 10.2 - Prepare the server</h3>
+<pre><code># SSH in
+ssh root@your-server-ip
+
+# Install Docker (Ubuntu/Debian)
+curl -fsSL https://get.docker.com | sh
+usermod -aG docker ubuntu   # or your non-root user
+
+# Open the firewall (if ufw is active)
+ufw allow 80
+ufw allow 443</code></pre>
+
+          <h3>Step 10.3 - Point a domain at it</h3>
+          <p>In your DNS provider, create an <strong>A record</strong> pointing <code>bugs.example.com</code> (or whatever subdomain you want) at the server's public IPv4. Wait for propagation (2-30 min typically).</p>
+
+          <h3>Step 10.4 - Install bugsift</h3>
+          <p>Same command as localhost:</p>
+<pre><code>curl -fsSL https://github.com/joym-gits/bugsift/releases/latest/download/install.sh | bash
+cd ~/bugsift</code></pre>
+
+          <h3>Step 10.5 - Apply the Caddy TLS overlay</h3>
+          <p>Caddy provisions Let's Encrypt certificates automatically. Add your domain + email to <code>.env</code>:</p>
+<pre><code>cat &gt;&gt; .env &lt;&lt;EOF
+BUGSIFT_DOMAIN=bugs.example.com
+BUGSIFT_ACME_EMAIL=ops@example.com
+BUGSIFT_PUBLIC_URL=https://bugs.example.com
+NEXT_PUBLIC_API_BASE_URL=https://bugs.example.com/api
+EOF</code></pre>
+          <p>Download the Caddy overlay and restart with it merged in:</p>
+<pre><code>curl -fsSLo docker-compose.caddy.yml \
+  https://raw.githubusercontent.com/joym-gits/bugsift/main/deploy/docker-compose.caddy.yml
+
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.caddy.yml up -d</code></pre>
+          <p>The first boot requests a certificate from Let's Encrypt (watch with <code>docker compose logs -f caddy</code>). Once issued, <code>https://bugs.example.com</code> serves the dashboard with a valid TLS cert.</p>
+
+          <h3>Step 10.6 - Update the GitHub App webhook URL</h3>
+          <p>Because your public URL changed, the GitHub App's webhook endpoint needs updating:</p>
+          <ol>
+            <li>Go to <code>https://github.com/settings/apps/your-app-name/permissions</code>.</li>
+            <li>Under <strong>Webhook URL</strong>, update to <code>https://bugs.example.com/api/webhooks/github</code>.</li>
+            <li>Save.</li>
+          </ol>
+          <p>New webhooks land directly - no more smee.io forwarder needed.</p>
+        </section>
+
+        <!-- ============== Part 11 - Ops ============== -->
+        <section id="ops">
+          <h2>Part 11 - Day-to-day operations</h2>
+          <p>Always run these from inside <code>~/bugsift/</code>:</p>
+<pre><code>cd ~/bugsift</code></pre>
+
+          <h3>View logs</h3>
+<pre><code>docker compose logs -f backend          # follow backend logs
+docker compose logs -f worker           # follow worker logs
+docker compose logs --tail 100 nginx    # last 100 lines of nginx
+docker compose logs                     # everything (noisy)</code></pre>
+
+          <h3>Restart a service</h3>
+<pre><code>docker compose restart backend
+docker compose restart worker</code></pre>
+
+          <h3>Stop / start the whole stack</h3>
+<pre><code>docker compose down        # stops containers; volumes (data) survive
+docker compose up -d       # starts everything</code></pre>
+
+          <h3>Upgrade to the latest release</h3>
+<pre><code>docker compose pull
+docker compose run --rm backend alembic upgrade head
+docker compose up -d</code></pre>
+          <p>To pin a specific version, set <code>BUGSIFT_IMAGE_TAG=v0.1.0</code> in <code>.env</code> before pulling.</p>
+
+          <h3>Back up your data</h3>
+          <p>Everything worth saving lives in two volumes: <code>bugsift_postgres_data</code> (cards, corrections, audit log, encrypted keys) and <code>bugsift_redis_data</code> (queue state, which is fine to lose).</p>
+          <p>Nightly <code>pg_dump</code> is usually enough:</p>
+<pre><code>docker compose exec -T postgres pg_dump -U bugsift bugsift \
+  | gzip &gt; "backup-$(date +%F).sql.gz"</code></pre>
+          <p><strong>Back up <code>.env</code> too.</strong> It contains the Fernet key - lose it and every encrypted row (API keys, App PEM, Slack URLs, Jira tokens) is unrecoverable. Store <code>.env</code> in a password manager or encrypted backup.</p>
+
+          <h3>Restore from backup</h3>
+<pre><code>gunzip -c backup-YYYY-MM-DD.sql.gz \
+  | docker compose exec -T postgres psql -U bugsift bugsift</code></pre>
+          <p>Restore <code>.env</code> to the same content (or at least the same <code>BUGSIFT_ENCRYPTION_KEY</code>) before booting, or decryption fails.</p>
+        </section>
+
+        <!-- ============== Part 12 - Troubleshooting ============== -->
+        <section id="troubleshooting">
+          <h2>Part 12 - Troubleshooting</h2>
+
+          <h3>Installer fails with <code>docker: command not found</code></h3>
+          <p>Install Docker first. See <a href="#before">Before you begin</a>.</p>
+
+          <h3>Installer fails with <code>docker daemon is not running</code></h3>
+          <ul>
+            <li><strong>macOS/Windows:</strong> open Docker Desktop and wait for the whale icon to stop animating.</li>
+            <li><strong>Linux:</strong> <code>sudo systemctl start docker</code> then <code>sudo systemctl enable docker</code>.</li>
+          </ul>
+
+          <h3>Installer fails with <code>permission denied</code> on the Docker socket</h3>
+          <p>Your user isn't in the <code>docker</code> group:</p>
+<pre><code>sudo usermod -aG docker $USER
+newgrp docker
+# Then re-run the installer.</code></pre>
+
+          <h3>Port 8080 already in use</h3>
+          <p>Something else is bound to 8080. Either stop it or change bugsift's port:</p>
+<pre><code>cd ~/bugsift
+echo "BUGSIFT_PUBLIC_PORT=18080" &gt;&gt; .env
+docker compose up -d nginx
+# Now use http://localhost:18080</code></pre>
+          <p>If you change the port, also update <code>BUGSIFT_PUBLIC_URL</code> and <code>NEXT_PUBLIC_API_BASE_URL</code> in <code>.env</code> to match, then <code>docker compose up -d</code> everything.</p>
+
+          <h3>"Bad gateway" on sign-in</h3>
+          <p>Backend restarted since nginx resolved its IP. bugsift's nginx config uses a Docker DNS resolver that should auto-recover; if not:</p>
+<pre><code>cd ~/bugsift
+docker compose restart nginx</code></pre>
+          <p>If it persists, check <code>docker compose logs backend</code> - the backend might be crashing. A common culprit is a malformed <code>BUGSIFT_ENCRYPTION_KEY</code> in <code>.env</code>. Regenerate it:</p>
+<pre><code>python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Paste the output into .env and docker compose restart backend</code></pre>
+          <div class="callout warn">
+            <p><strong>Warning:</strong> rotating the encryption key invalidates every encrypted row in the database. If you had saved LLM keys / Slack URLs / Jira tokens, you'll have to re-enter them.</p>
+          </div>
+
+          <h3>Onboarding says "Bootstrap token required" but I set one</h3>
+          <p>The backend only reads <code>.env</code> on startup. After changing <code>BUGSIFT_BOOTSTRAP_TOKEN</code>:</p>
+<pre><code>docker compose restart backend</code></pre>
+          <p>Then try again - paste the current value from <code>~/bugsift/.env</code>.</p>
+
+          <h3>I opened an issue but no card appeared</h3>
+          <p>Walk through these in order:</p>
+          <ol>
+            <li><strong>Is triage enqueued?</strong> <code>docker compose logs backend | grep webhook</code> - you should see <code>webhook received issues.opened</code>. No line = GitHub never reached you. Check that the App is installed on the repo and that webhooks are delivering (GitHub &rarr; {App} &rarr; Advanced &rarr; Recent Deliveries).</li>
+            <li><strong>Is the worker picking it up?</strong> <code>docker compose logs worker | grep triage</code> - you should see <code>processing issue_opened</code>. No line = worker isn't running or Redis is unreachable.</li>
+            <li><strong>Is the LLM call failing?</strong> <code>docker compose logs worker | grep -i error</code> - a 401 / 429 here means your key is wrong or rate-limited.</li>
+            <li><strong>Is dashboards frontend up but the backend is not?</strong> Hit <code>http://localhost:8080/api/health</code> directly. It should return <code>{"status":"ok","version":"0.x.x"}</code>.</li>
+          </ol>
+
+          <h3>LLM key test returns 401</h3>
+          <p>Copy your key fresh from the provider (Anthropic keys start with <code>sk-ant-</code>, OpenAI with <code>sk-proj-</code> or <code>sk-</code>, Google with <code>AIza</code>). Common mistakes:</p>
+          <ul>
+            <li>Trailing whitespace from the copy-paste.</li>
+            <li>Using the org admin key instead of a user key.</li>
+            <li>The key is rate-limited - try again in 60 s.</li>
+          </ul>
+
+          <h3>Webhook not arriving on localhost</h3>
+          <p>The installer auto-provisions a smee.io channel that forwards to <code>backend:8000/webhooks/github</code>. If it's not working:</p>
+<pre><code>docker compose logs backend | grep smee</code></pre>
+          <p>You should see <code>smee forwarder starting: https://smee.io/XXX</code>. If you see connection errors, either smee.io is having an outage (rare) or your server has no outbound HTTPS. Test:</p>
+<pre><code>curl -I https://smee.io</code></pre>
+          <p>If that hangs, your network blocks outbound HTTPS to smee.io - expose the port directly or put a domain in front and set a real webhook URL in the GitHub App settings.</p>
+
+          <h3>Migration failure on upgrade</h3>
+          <p>If <code>alembic upgrade head</code> errors out, the migration is usually safe to retry after fixing the root cause. Check the error message; common cases:</p>
+          <ul>
+            <li><strong>Duplicate column</strong> - a previous upgrade was interrupted. Jump to <code>head</code> with <code>alembic stamp head</code> if you're sure the schema is already there (risky - ideally restore from backup first).</li>
+            <li><strong>Missing table</strong> - the database wasn't seeded. <code>docker compose down &amp;&amp; docker compose up -d</code> and retry.</li>
+          </ul>
+
+          <h3>"No LLM key configured" on cards that existed before I added a key</h3>
+          <p>The pipeline checked your key at triage time and there was none, so the card is <code>pending</code> with no classification. Click <strong>Retry</strong> on the card - the orchestrator reruns with your current key.</p>
+
+          <h3>Container killed / OOM</h3>
+          <p>2 GB RAM is the minimum and leaves little headroom. Check:</p>
+<pre><code>docker stats --no-stream</code></pre>
+          <p>If Postgres is eating &gt; 1 GB, reduce its shared_buffers (uncommon). If the worker is the culprit, you're probably processing a large <code>backfill</code> job - wait for it to finish.</p>
+
+          <h3>Everything else - ask</h3>
+          <ul>
+            <li>GitHub issue: <a href="https://github.com/joym-gits/bugsift/issues" target="_blank" rel="noopener">github.com/joym-gits/bugsift/issues</a> - include the output of <code>docker compose logs --tail 200</code> (redact your <code>.env</code> values first).</li>
+            <li>Twitter: <a href="https://x.com/_joymukerjee" target="_blank" rel="noopener">@_joymukerjee</a> - for "is this even working for anyone else" style pings.</li>
+          </ul>
+        </section>
+
+        <!-- ============== Part 13 - Uninstall ============== -->
+        <section id="uninstall">
+          <h2>Part 13 - Uninstall and cleanup</h2>
+          <p>To stop bugsift without deleting anything:</p>
+<pre><code>cd ~/bugsift
+docker compose down</code></pre>
+          <p>Volumes survive - you can <code>docker compose up -d</code> again and everything picks up where it left off.</p>
+          <p>To delete everything including your data:</p>
+<pre><code>cd ~/bugsift
+docker compose down -v            # -v deletes volumes (postgres + redis data)
+docker image rm $(docker images -q 'ghcr.io/joym-gits/bugsift-*')
+cd ..
+rm -rf bugsift</code></pre>
+          <p>To also revoke the GitHub App:</p>
+          <ol>
+            <li>Go to <code>github.com/settings/apps</code>.</li>
+            <li>Find your bugsift App.</li>
+            <li>Click <strong>Delete App</strong> at the bottom.</li>
+          </ol>
+          <p>Any repos the App was installed on lose their webhook connection automatically.</p>
+        </section>
+
+        <!-- ============== Appendix - Env vars ============== -->
+        <section id="envvars">
+          <h2>Appendix - Environment variables reference</h2>
+          <p>All of these live in <code>~/bugsift/.env</code>. Most are set by the installer; only a handful are worth knowing about for day-to-day use.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Variable</th><th>Default</th><th>What it does</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>BUGSIFT_ENV</code></td><td><code>production</code></td><td><code>development</code> relaxes cookie security + bootstrap token gate. Don't set to <code>development</code> on a public-facing host.</td></tr>
+                <tr><td><code>BUGSIFT_PUBLIC_URL</code></td><td><code>http://localhost:8080</code></td><td>The URL users reach the dashboard at. Used for OAuth callbacks - must match what you tell the browser.</td></tr>
+                <tr><td><code>BUGSIFT_PUBLIC_PORT</code></td><td><code>8080</code></td><td>Host port nginx binds to.</td></tr>
+                <tr><td><code>BUGSIFT_ENCRYPTION_KEY</code></td><td><em>(generated)</em></td><td><strong>Do not lose this.</strong> Fernet master key that protects every stored secret.</td></tr>
+                <tr><td><code>BUGSIFT_SESSION_SECRET</code></td><td><em>(generated)</em></td><td>Signs session cookies. Rotating forces every user to sign in again.</td></tr>
+                <tr><td><code>BUGSIFT_BOOTSTRAP_TOKEN</code></td><td><em>(generated)</em></td><td>Required on first-run GitHub App registration in production.</td></tr>
+                <tr><td><code>BUGSIFT_IMAGE_TAG</code></td><td><code>latest</code></td><td>Pin a specific release: <code>v0.1.0</code>.</td></tr>
+                <tr><td><code>BUGSIFT_IMAGE_OWNER</code></td><td><code>joym-gits</code></td><td>For forks publishing to a different GHCR org.</td></tr>
+                <tr><td><code>BUGSIFT_TRUST_PROXY</code></td><td><code>1</code></td><td>Read <code>X-Real-IP</code> for rate-limit keying. Set <code>0</code> only if no proxy is in front.</td></tr>
+                <tr><td><code>BUGSIFT_DOMAIN</code></td><td><em>(unset)</em></td><td>Used by the Caddy overlay - must point at this server's public IP.</td></tr>
+                <tr><td><code>BUGSIFT_ACME_EMAIL</code></td><td><em>(unset)</em></td><td>Used by the Caddy overlay for Let's Encrypt account creation.</td></tr>
+                <tr><td><code>POSTGRES_PASSWORD</code></td><td><em>(generated)</em></td><td>Postgres superuser password. Only ever used container-internal.</td></tr>
+                <tr><td><code>REDIS_URL</code></td><td><code>redis://redis:6379/0</code></td><td>Changing only makes sense for external Redis - not recommended.</td></tr>
+                <tr><td><code>NEXT_PUBLIC_API_BASE_URL</code></td><td><code>http://localhost:8080/api</code></td><td>Must match <code>BUGSIFT_PUBLIC_URL</code> + <code>/api</code>. The frontend bakes this in at build time.</td></tr>
+                <tr><td><code>OLLAMA_BASE_URL</code></td><td><code>http://host.docker.internal:11434</code></td><td>Point at your Ollama server for local LLM use.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Any variable you change requires <code>docker compose up -d</code> to take effect (the backend reads env on process start).</p>
+          <p class="muted" style="color: var(--muted-foreground); margin-top: 32px; font-size: 14px;"><em>This guide covers bugsift v0.1+. Check the <a href="https://github.com/joym-gits/bugsift/releases" target="_blank" rel="noopener">releases page</a> for updates.</em></p>
+        </section>
+
+      </article>
+    </div>
+
+    <!-- =================== FOOTER =================== -->
+    <footer class="footer">
+      <div class="container">
+        <div class="left">
+          <span class="logo" style="font-size:16px;">bugs<span class="dot"></span>ft</span>
+          <span style="margin-left:12px;">· Apache 2.0 · built with warm orange</span>
+        </div>
+        <div class="footer-links">
+          <a href="/">Home</a>
+          <a href="/guide">Guide</a>
+          <a href="https://github.com/joym-gits/bugsift" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/joym-gits/bugsift/releases" target="_blank" rel="noopener">Releases</a>
+          <a href="https://x.com/_joymukerjee" target="_blank" rel="noopener">Twitter</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
