@@ -531,6 +531,86 @@
         font-family: "JetBrains Mono", monospace;
         font-size: 12.5px;
       }
+
+      /* ================================================================
+         Contact button (floating)
+         ================================================================ */
+      .contact-btn {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 20;
+        width: 56px;
+        height: 56px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: var(--elev-3);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .contact-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 20px 60px -12px rgba(194, 65, 12, 0.3);
+      }
+      .contact-menu {
+        position: fixed;
+        bottom: 100px;
+        right: 24px;
+        z-index: 20;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--elev-3);
+        min-width: 220px;
+        display: none;
+        animation: slideUp 0.2s ease-out;
+      }
+      .contact-menu.open {
+        display: block;
+      }
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .contact-menu a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--foreground);
+        text-decoration: none;
+        transition: background 0.15s;
+      }
+      .contact-menu a:last-child {
+        border-bottom: none;
+      }
+      .contact-menu a:hover {
+        background: var(--background-alt);
+        text-decoration: none;
+      }
+      .contact-menu a .icon {
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .contact-menu a .text {
+        font-size: 13.5px;
+        font-weight: 500;
+      }
+      .contact-menu .label {
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+      }
     </style>
   </head>
 
@@ -947,6 +1027,29 @@
       </div>
     </footer>
 
+    <!-- =================== CONTACT BUTTON =================== -->
+    <button class="contact-btn" onclick="toggleContactMenu()" title="Get in touch">
+      <span>💬</span>
+    </button>
+    <div class="contact-menu" id="contactMenu">
+      <div class="label">Get in touch</div>
+      <a href="https://x.com/messages/compose?recipient_id=_joymukerjee" target="_blank" rel="noopener">
+        <span class="icon">𝕏</span>
+        <span class="text">DM on X</span>
+      </a>
+      <a href="https://github.com/joym-gits/bugsift/issues" target="_blank" rel="noopener">
+        <span class="icon">🐛</span>
+        <span class="text">GitHub Issues</span>
+      </a>
+      <a href="https://discord.gg/bugsift" target="_blank" rel="noopener">
+        <span class="icon">💻</span>
+        <span class="text">Discord Community</span>
+      </a>
+      <div style="padding:12px 16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted-foreground);">
+        📧 Email: Coming soon
+      </div>
+    </div>
+
     <script>
       function copyCmd(btn) {
         const text = "BUGSIFT_DOMAIN=bugsift.yourdomain.com curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.0/install.sh | bash";
@@ -960,6 +1063,20 @@
           }, 1600);
         });
       }
+
+      function toggleContactMenu() {
+        const menu = document.getElementById("contactMenu");
+        menu.classList.toggle("open");
+      }
+
+      // Close menu when clicking outside
+      document.addEventListener("click", (e) => {
+        const menu = document.getElementById("contactMenu");
+        const btn = document.querySelector(".contact-btn");
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
+          menu.classList.remove("open");
+        }
+      });
     </script>
   </body>
 </html>
