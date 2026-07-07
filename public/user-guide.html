@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>bugsift User Guide - From Zero to Production</title>
+    <meta name="description" content="Complete guide to installing, setting up, and using bugsift for GitHub issue triage. Learn the workflow, integrations, and best practices."/>
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content="bugsift User Guide - Complete Setup & Workflow"/>
+    <meta property="og:description" content="Everything you need to go from zero to production with bugsift."/>
+    <meta property="og:image" content="/og-image.png"/>
+    <meta property="og:url" content="https://bugsift.dev/user-guide"/>
+
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="bugsift User Guide"/>
+    <meta name="twitter:description" content="Complete setup and workflow guide."/>
+    <meta name="twitter:image" content="/og-image.png"/>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+    <style>
+      :root {
+        --background: #fffbf5;
+        --background-alt: #fff5e9;
+        --foreground: #1c1917;
+        --muted: #f5f0eb;
+        --muted-foreground: #6b6259;
+        --border: #e7e5e4;
+        --card: #ffffff;
+
+        --primary: #c2410c;
+        --primary-bright: #ea7a1c;
+        --primary-fg: #ffffff;
+        --accent-bg: #fff0e5;
+        --accent-fg: #9a3412;
+
+        --success: #15803d;
+        --info: #1d4ed8;
+        --warning: #b45309;
+        --destructive: #b91c1c;
+
+        --radius: 10px;
+        --elev-1: 0 1px 2px 0 rgba(28, 20, 17, 0.05);
+        --elev-2: 0 4px 12px -2px rgba(28, 20, 17, 0.08), 0 1px 2px 0 rgba(28, 20, 17, 0.04);
+
+        --max: 900px;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        letter-spacing: -0.005em;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      a { color: var(--primary); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      code, pre, .mono {
+        font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+
+      h1, h2, h3, h4 { letter-spacing: -0.02em; margin: 0; }
+      h1 { font-size: clamp(2.25rem, 4vw, 3rem); font-weight: 700; line-height: 1.1; }
+      h2 { font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 700; line-height: 1.15; margin-top: 2em; }
+      h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.3; margin-top: 1.5em; }
+      h4 { font-size: 1rem; font-weight: 600; line-height: 1.35; }
+
+      .container {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ============ NAV ============ */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 251, 245, 0.85);
+        backdrop-filter: saturate(180%) blur(10px);
+        -webkit-backdrop-filter: saturate(180%) blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav .container {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: -0.03em;
+        color: var(--foreground);
+      }
+      .logo .dot {
+        width: 6px; height: 6px;
+        background: var(--primary);
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 1px 14px 1px;
+      }
+      .nav-links {
+        display: none;
+        gap: 28px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .nav-links a { color: var(--muted-foreground); }
+      .nav-links a:hover { color: var(--foreground); text-decoration: none; }
+      .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 14px;
+        background: var(--foreground);
+        color: #fff;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 500;
+      }
+      .nav-cta:hover { text-decoration: none; opacity: 0.9; }
+      @media (min-width: 760px) { .nav-links { display: flex; } }
+
+      /* ============ HERO ============ */
+      .hero {
+        padding: 64px 0 40px;
+        background:
+          radial-gradient(ellipse 80% 60% at 20% 0%, rgba(234, 122, 28, 0.10), transparent 70%),
+          var(--background);
+      }
+      .hero h1 { max-width: 820px; margin-bottom: 12px; }
+      .hero .tag {
+        max-width: 720px;
+        font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+        color: var(--muted-foreground);
+        margin: 12px 0 20px;
+      }
+
+      /* ============ TOC (Table of Contents) ============ */
+      .toc {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px;
+        margin: 40px 0;
+        box-shadow: var(--elev-1);
+      }
+      .toc h3 {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 16px;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .toc li {
+        margin-bottom: 10px;
+      }
+      .toc a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+      }
+      .toc-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 640px) {
+        .toc-section { grid-template-columns: 1fr; }
+      }
+      .toc-section strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--primary);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      /* ============ CONTENT ============ */
+      .content {
+        padding: 20px 0;
+      }
+      .content section {
+        margin-bottom: 60px;
+      }
+
+      .section-icon {
+        font-size: 32px;
+        margin-right: 12px;
+        vertical-align: middle;
+      }
+
+      .box {
+        background: var(--background-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin: 20px 0;
+      }
+      .box.highlight {
+        border-color: rgba(194, 65, 12, 0.25);
+        background: rgba(234, 122, 28, 0.05);
+      }
+
+      .steps {
+        counter-reset: step-counter;
+      }
+      .step {
+        counter-increment: step-counter;
+        margin-bottom: 20px;
+        padding-left: 48px;
+        position: relative;
+      }
+      .step::before {
+        content: counter(step-counter);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 32px;
+        height: 32px;
+        background: var(--primary);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .step strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--foreground);
+      }
+
+      .code-block {
+        background: #1c1917;
+        color: #f5f5f4;
+        padding: 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 16px 0;
+      }
+      .code-block code {
+        font-size: 13px;
+      }
+
+      .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 16px 0;
+      }
+      .feature-list li {
+        padding: 12px 0;
+        padding-left: 28px;
+        position: relative;
+      }
+      .feature-list li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: var(--success);
+        font-weight: 700;
+      }
+
+      /* ============ FOOTER ============ */
+      .footer {
+        padding: 48px 0 32px;
+        border-top: 1px solid var(--border);
+        background: var(--background);
+        margin-top: 80px;
+      }
+      .footer .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .footer .left {
+        color: var(--muted-foreground);
+        font-size: 14px;
+      }
+      .footer-links {
+        display: flex;
+        gap: 22px;
+        font-size: 14px;
+      }
+      .footer-links a {
+        color: var(--muted-foreground);
+      }
+      .footer-links a:hover {
+        color: var(--foreground);
+      }
+
+      /* ============ FAQ ============ */
+      .faq-list { margin: 32px 0; }
+      .faq-item {
+        border-bottom: 1px solid var(--border);
+        padding: 20px 0;
+      }
+      .faq-item:last-child { border-bottom: 0; }
+      .faq-item summary {
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .faq-item summary::-webkit-details-marker { display: none; }
+      .faq-item summary::after {
+        content: "+";
+        font-size: 22px;
+        color: var(--primary);
+        transition: transform 0.2s;
+      }
+      .faq-item[open] summary::after { content: "−"; }
+      .faq-item p {
+        margin: 12px 0 0;
+        color: var(--muted-foreground);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- =================== NAV =================== -->
+    <nav class="nav">
+      <div class="container">
+        <a class="logo" href="/">bugs<span class="dot"></span>ft</a>
+        <div class="nav-links">
+          <a href="/">Home</a>
+          <a href="/user-guide">Guide</a>
+          <a href="https://github.com/joym-gits/bugsift" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <a class="nav-cta" href="https://github.com/joym-gits/bugsift/releases/tag/v0.2.0" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .3C5.4.3 0 5.7 0 12.3c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2 0 1.9 1.2 1.9 1.2 1.1 1.9 2.8 1.4 3.5 1 .1-.8.4-1.4.8-1.7-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2.9-.3 2-.4 3-.4s2 .1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.7-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6C20.6 22.1 24 17.6 24 12.3 24 5.7 18.6.3 12 .3z"/></svg>
+          v0.2.0 Release
+        </a>
+      </div>
+    </nav>
+
+    <!-- =================== HERO =================== -->
+    <section class="hero">
+      <div class="container">
+        <h1><span class="section-icon">📖</span> Complete User Guide</h1>
+        <p class="tag">From Zero to Production. Learn how to install, set up, and use bugsift for GitHub issue triage.</p>
+      </div>
+    </section>
+
+    <!-- =================== TABLE OF CONTENTS =================== -->
+    <div class="container">
+      <div class="toc">
+        <h3>📑 Quick Navigation</h3>
+        <div class="toc-section">
+          <div>
+            <strong>Getting Started</strong>
+            <ul>
+              <li><a href="#what-is">What is bugsift?</a></li>
+              <li><a href="#prerequisites">Prerequisites</a></li>
+              <li><a href="#installation">Installation</a></li>
+            </ul>
+          </div>
+          <div>
+            <strong>Setup & Workflow</strong>
+            <ul>
+              <li><a href="#initial-setup">Initial Setup</a></li>
+              <li><a href="#daily-workflow">Daily Workflow</a></li>
+              <li><a href="#integrations">Integrations</a></li>
+            </ul>
+          </div>
+          <div>
+            <strong>Configuration</strong>
+            <ul>
+              <li><a href="#configuration">Configuration</a></li>
+              <li><a href="#monitoring">Monitoring</a></li>
+              <li><a href="#faq">FAQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <strong>Advanced</strong>
+            <ul>
+              <li><a href="#advanced">Advanced Topics</a></li>
+              <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== CONTENT =================== -->
+    <div class="container">
+      <div class="content">
+
+        <!-- What is bugsift? -->
+        <section id="what-is">
+          <h2><span class="section-icon">🤖</span> What is bugsift?</h2>
+          <p>Think of bugsift as an <strong>AI-powered triage bot for your GitHub issues</strong>. Instead of maintainers spending hours reading every issue to figure out if it's a real bug, duplicate, feature request, or spam — bugsift does this automatically in about 90 seconds per issue.</p>
+          <p>It classifies the issue, checks for duplicates, tries to reproduce it, and drafts a reply for you to approve. <strong>You always decide what actually gets posted.</strong></p>
+        </section>
+
+        <!-- Prerequisites -->
+        <section id="prerequisites">
+          <h2><span class="section-icon">✅</span> Prerequisites - What You Need</h2>
+
+          <h3>Hardware</h3>
+          <ul class="feature-list">
+            <li>A server or cloud VM (AWS EC2, DigitalOcean, or even your laptop)</li>
+            <li>2GB RAM minimum (4GB recommended for production)</li>
+            <li>50GB disk space (scales with your repo size)</li>
+            <li>Any OS: Linux, macOS, Windows (with Docker Desktop)</li>
+          </ul>
+
+          <h3>Software</h3>
+          <ul class="feature-list">
+            <li>Docker 24+ (includes Docker Compose)</li>
+            <li>Your own domain (optional for testing, required for production)</li>
+            <li>A GitHub account with at least one repository</li>
+          </ul>
+
+          <h3>API Keys (you provide these)</h3>
+          <ul class="feature-list">
+            <li>GitHub Personal Access Token (or GitHub App — we help you create this)</li>
+            <li>LLM API key (Anthropic Claude, OpenAI, Google Gemini, or Ollama)</li>
+          </ul>
+
+          <div class="box highlight">
+            <strong>That's it!</strong> No additional databases to manage, no servers to provision separately.
+          </div>
+        </section>
+
+        <!-- Installation -->
+        <section id="installation">
+          <h2><span class="section-icon">🚀</span> Installation - The Easy Way</h2>
+          <p>The entire installation is literally one command:</p>
+
+          <div class="code-block">
+<code>BUGSIFT_DOMAIN=bugsift.yourdomain.com \
+  curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.0/install.sh | bash</code>
+          </div>
+
+          <h3>What this does behind the scenes:</h3>
+          <ul class="feature-list">
+            <li>Downloads pre-built Docker images (backend + frontend)</li>
+            <li>Creates a PostgreSQL database</li>
+            <li>Sets up Redis caching</li>
+            <li>Generates encryption keys automatically</li>
+            <li>Creates an nginx reverse proxy</li>
+            <li>Starts all services</li>
+            <li>Prints you a bootstrap token and dashboard URL</li>
+          </ul>
+
+          <p><strong>The entire process takes about 5 minutes.</strong></p>
+
+          <h3>For local testing (before production):</h3>
+          <p>You can skip the domain and just run the command without the BUGSIFT_DOMAIN variable. This runs on <code>localhost:3001</code> (frontend) and <code>localhost:8001</code> (API).</p>
+        </section>
+
+        <!-- Initial Setup -->
+        <section id="initial-setup">
+          <h2><span class="section-icon">⚙️</span> Initial Setup - First 15 Minutes</h2>
+          <p>Once installed, here's what to do:</p>
+
+          <div class="steps">
+            <div class="step">
+              <strong>Create Your First Admin Account (2 min)</strong>
+              <p>Visit your dashboard (either https://bugsift.yourdomain.com or http://localhost:3001). You'll see a setup wizard. Create an admin account with email + password. Write down the bootstrap token (shown once).</p>
+            </div>
+
+            <div class="step">
+              <strong>Register GitHub App (5 min)</strong>
+              <p>In dashboard → Settings → GitHub Integration, click "Register GitHub App". GitHub's manifest flow opens. Bugsift creates the GitHub App automatically (you approve once). GitHub gives you App credentials, bugsift stores them encrypted.</p>
+            </div>
+
+            <div class="step">
+              <strong>Install on Your Repos (3 min)</strong>
+              <p>Visit GitHub → Settings → Apps → Installed Apps. Click "Bugsift". Select which repos to install on (can be all, or specific ones). Once installed, bugsift starts listening for issue events.</p>
+            </div>
+
+            <div class="step">
+              <strong>Add an LLM Key (2 min)</strong>
+              <p>Back in dashboard → Settings → LLM Provider. Paste your Anthropic API key (or OpenAI, Google, etc.). Set monthly budget (optional — bugsift stops processing when reached). Save.</p>
+            </div>
+          </div>
+
+          <div class="box highlight">
+            <strong>Now you're ready!</strong> Open an issue on one of your repos and watch bugsift triage it in ~90 seconds.
+          </div>
+        </section>
+
+        <!-- Daily Workflow -->
+        <section id="daily-workflow">
+          <h2><span class="section-icon">📊</span> Daily Workflow - What Actually Happens</h2>
+          <p>Here's the magic part. A user creates an issue on your repo:</p>
+
+          <div class="code-block">
+<code>Issue created: "fix: database connection timeout"</code>
+          </div>
+
+          <p>Within ~90 seconds, bugsift automatically:</p>
+
+          <ul class="feature-list">
+            <li><strong>Classifies it</strong> — Determines it's a "bug" (not feature, question, docs, spam)</li>
+            <li><strong>Checks for duplicates</strong> — Searches past issues to see if this was reported before</li>
+            <li><strong>Points to likely files</strong> — Says "probably src/db/connection.py lines 45–78"</li>
+            <li><strong>Tries to reproduce</strong> — Runs code in isolated sandbox to confirm the bug</li>
+            <li><strong>Drafts a reply</strong> — Something like: "Thanks for the report! I can reproduce this on v1.2.3. It's because the connection pool doesn't handle network timeouts. Assigned to @alice."</li>
+          </ul>
+
+          <p>This all appears as a <strong>triage card in the bugsift dashboard.</strong></p>
+
+          <h3>You (the maintainer) decide:</h3>
+          <ul class="feature-list">
+            <li><strong>✅ Approve</strong> — Posts the comment to GitHub</li>
+            <li><strong>✏️ Edit</strong> — Tweak the comment, then approve</li>
+            <li><strong>⏭️ Skip</strong> — Ignore it (maybe it's unclear or you already have context)</li>
+          </ul>
+
+          <p><strong>All of this takes about 30 seconds for you to review.</strong> The bot does 90 seconds of work, you do 30 seconds.</p>
+
+          <div class="box">
+            <strong>For a solo repo with 100 issues/month, you save about 50 hours of triage work.</strong>
+          </div>
+        </section>
+
+        <!-- Integrations -->
+        <section id="integrations">
+          <h2><span class="section-icon">🔌</span> Integrations - Connect to Your Tools</h2>
+          <p>By default, bugsift shows you cards in the dashboard. But you can integrate:</p>
+
+          <h3>GitHub (built-in)</h3>
+          <ul class="feature-list">
+            <li>Posts the triaged comment to the actual GitHub issue</li>
+            <li>Can auto-assign to team members</li>
+            <li>Can add labels</li>
+          </ul>
+
+          <h3>Slack (optional)</h3>
+          <ul class="feature-list">
+            <li>Sends you notifications when new triage cards appear</li>
+            <li>Can filter by severity</li>
+            <li>Links directly to dashboard cards</li>
+          </ul>
+
+          <h3>Jira (optional)</h3>
+          <ul class="feature-list">
+            <li>Creates Jira tickets from approved GitHub issues</li>
+            <li>Syncs status between GitHub and Jira</li>
+            <li>Auto-assign based on your rules</li>
+          </ul>
+
+          <h3>Email (optional)</h3>
+          <ul class="feature-list">
+            <li>Daily digest of what was triaged</li>
+            <li>Summary of accuracy</li>
+          </ul>
+
+          <p><strong>Set all of this up in Settings → Integrations.</strong></p>
+        </section>
+
+        <!-- Configuration -->
+        <section id="configuration">
+          <h2><span class="section-icon">📋</span> Configuration - Customizing Behavior</h2>
+
+          <h3>Routing Rules (the cool part)</h3>
+          <p>You can tell bugsift custom rules like:</p>
+
+          <div class="box">
+            <p><strong>"For issues labeled 'security', assign to @alice, add label 'critical', notify #incidents on Slack, and SLA is 4 hours."</strong></p>
+            <p style="margin: 16px 0 0; border-top: 1px solid var(--border); padding-top: 16px;">Or: <strong>"For documentation issues, auto-skip with 'auto-close' label and reply 'See our docs: [link]'"</strong></p>
+            <p style="margin: 16px 0 0; border-top: 1px solid var(--border); padding-top: 16px;">Or: <strong>"For bug reports on the mobile app with severity:high, assign to @bob, notify #mobile-oncall, and SLA is 24 hours"</strong></p>
+          </div>
+
+          <p>You define these rules once, bugsift applies them automatically.</p>
+
+          <h3>Learning from your team</h3>
+          <p>Every time you approve/edit/skip a card, bugsift learns. So if you consistently change "maybe-duplicate" to "actual-duplicate", bugsift gets better at catching duplicates. This is the "feedback loop" — the AI learns your team's preferences over time.</p>
+        </section>
+
+        <!-- Monitoring -->
+        <section id="monitoring">
+          <h2><span class="section-icon">🔍</span> Monitoring - How is it Running?</h2>
+          <p>The dashboard shows you:</p>
+
+          <ul class="feature-list">
+            <li><strong>Metrics</strong> — How many issues were triaged today, approval rate, accuracy</li>
+            <li><strong>LLM costs</strong> — How much you're spending per provider/model</li>
+            <li><strong>Performance</strong> — Average time to triage, success rate</li>
+            <li><strong>User activity</strong> — Who approved what, when</li>
+          </ul>
+
+          <p>You can also:</p>
+
+          <ul class="feature-list">
+            <li>Check logs if something breaks (Settings → Logs)</li>
+            <li>View audit trail of who did what and when (Settings → Audit Log)</li>
+            <li>Export data for reporting</li>
+          </ul>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq">
+          <h2><span class="section-icon">❓</span> Frequently Asked Questions</h2>
+
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>"What if bugsift gets it wrong?"</summary>
+              <p>You're always in control. Every card goes to your dashboard before posting. You approve, edit, or skip. Bugsift never posts without permission.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>"Does it work with private repos?"</summary>
+              <p>Yes. Everything runs on your servers. Your GitHub tokens and issue bodies never touch anyone else's servers.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>"How much does it cost?"</summary>
+              <p>Bugsift itself is free (Apache 2.0 open source). You only pay for the LLM provider. For 100 issues/month with Anthropic, probably $2–5/month depending on issue size.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>"What if I already triage manually?"</summary>
+              <p>Bugsift speeds you up. Even if you don't use routing rules, you still save time by having the AI do the reading and write draft replies.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>"Can I customize the prompts?"</summary>
+              <p>Yes, advanced users can fork the repo and modify the LLM prompts. The system is designed to be hackable.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>"How long does it take to see results?"</summary>
+              <p>Installation: 5 minutes. Setup: 15 minutes. First triage card: ~90 seconds after an issue is opened. Full productivity: within the first hour.</p>
+            </details>
+          </div>
+        </section>
+
+        <!-- Advanced -->
+        <section id="advanced">
+          <h2><span class="section-icon">📚</span> Advanced Topics</h2>
+
+          <h3>Custom Prompts</h3>
+          <p>The LLM prompts that drive classification, dedup, and reply generation are customizable. Fork the repo and modify them to match your team's style and preferences.</p>
+
+          <h3>Self-Hosted Runners</h3>
+          <p>For air-gapped environments or on-prem deployments, you can run bugsift entirely on your own hardware with no external dependencies.</p>
+
+          <h3>Multi-Team Setup</h3>
+          <p>Run one bugsift instance and manage multiple repos with different teams. Each team gets its own dashboard, rules, and audit log.</p>
+
+          <h3>API Integrations</h3>
+          <p>Bugsift exposes a REST API for advanced integrations. Check the GitHub repo for API docs.</p>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section id="troubleshooting">
+          <h2><span class="section-icon">🆘</span> Troubleshooting</h2>
+
+          <h3>Dashboard not loading</h3>
+          <p>Check that Docker containers are running: <code>docker ps</code>. If the frontend container isn't running, check logs with <code>docker logs bugsift-frontend</code>.</p>
+
+          <h3>No triage cards appearing</h3>
+          <p>Make sure the GitHub App is installed on your repos (GitHub → Settings → Apps → Installed Apps). Check that new issues trigger webhooks (GitHub → Repo → Settings → Webhooks).</p>
+
+          <h3>GitHub auth failing</h3>
+          <p>Re-register the GitHub App in Settings → GitHub Integration → Register GitHub App. This will renew the App credentials.</p>
+
+          <h3>LLM key invalid</h3>
+          <p>Double-check your API key in Settings → LLM Provider. Make sure there are no extra spaces or line breaks. Test the key by triggering a triage.</p>
+
+          <h3>Performance issues</h3>
+          <p>If triages are slow, check that you have at least 2GB of available RAM. Consider upgrading to 4GB for production use. Also check LLM provider status — slow responses usually mean the provider is under heavy load.</p>
+
+          <div class="box">
+            <strong>Need more help?</strong> Open an issue on <a href="https://github.com/joym-gits/bugsift/issues" target="_blank">GitHub</a>, or reach out in our <a href="https://discord.gg/dmuTQ3fn9" target="_blank">Discord community</a>.
+          </div>
+        </section>
+
+        <!-- The Key Insight -->
+        <section>
+          <h2><span class="section-icon">💡</span> The Key Insight</h2>
+          <p>What makes bugsift different from other tools is it's <strong>human-in-the-loop by design.</strong> Users aren't handing off decision-making to AI. They're using AI to do the boring reading/analysis work, then they make the actual decisions. This is why it's safe and practical to use in real teams.</p>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- =================== FOOTER =================== -->
+    <footer class="footer">
+      <div class="container">
+        <div class="left">
+          <span class="logo" style="font-size:16px;">bugs<span class="dot"></span>ft v0.2.0</span>
+          <span style="margin-left:12px;">· Apache 2.0 · self-hosted</span>
+        </div>
+        <div class="footer-links">
+          <a href="/" target="_blank">Home</a>
+          <a href="https://github.com/joym-gits/bugsift/blob/main/DEPLOY_GUIDE.md" target="_blank" rel="noopener">Deploy Guide</a>
+          <a href="https://github.com/joym-gits/bugsift" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://discord.gg/dmuTQ3fn9" target="_blank" rel="noopener">Discord</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
