@@ -655,7 +655,7 @@
 
         <div class="install-box">
           <span class="prompt">$</span>
-          <code id="install-cmd">BUGSIFT_DOMAIN=bugsift.yourdomain.com curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.0/install.sh | bash</code>
+          <code id="install-cmd">BUGSIFT_DOMAIN=bugsift.yourdomain.com BUGSIFT_ACME_EMAIL=you@yourdomain.com curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.0/install.sh | bash</code>
           <button class="copy-btn" type="button" onclick="copyCmd(this)">Copy</button>
         </div>
 
@@ -764,12 +764,12 @@
           <div class="feature">
             <div class="feature-ic">🔒</div>
             <h3>SAST Security Scanning</h3>
-            <p>Bandit (Python) + ESLint (JavaScript) catch vulnerabilities automatically in CI/CD. Blocks merged code with security issues.</p>
+            <p>Bandit (Python) and ESLint (JavaScript) scan every commit in CI/CD and publish findings as reviewable reports. Merge-blocking enforcement is on the roadmap, not yet wired in.</p>
           </div>
           <div class="feature">
             <div class="feature-ic">📦</div>
             <h3>Dependency Audits</h3>
-            <p>npm audit + pip audit verify supply chain security. Prevents vulnerable dependencies from shipping to production.</p>
+            <p>npm audit runs in CI on every commit and publishes a findings report. Python dependency auditing (pip-audit) is on the roadmap — not yet part of the pipeline.</p>
           </div>
           <div class="feature">
             <div class="feature-ic">📊</div>
@@ -834,14 +834,14 @@
             <span class="tick">✓</span>
             <div>
               <h3>SAST Scanning in CI/CD</h3>
-              <p>Bandit (Python) and ESLint (JavaScript) scan every commit. Vulnerabilities block PRs from merging.</p>
+              <p>Bandit (Python) and ESLint (JavaScript) scan every commit and publish results as CI artifacts. Not yet configured to block merges — treat findings as a review signal today, not a gate.</p>
             </div>
           </div>
           <div class="sec-item">
             <span class="tick">✓</span>
             <div>
-              <h3>Container Security Scanning</h3>
-              <p>GitHub's native container scanning detects CVEs in Docker images. Multi-architecture builds verified before publication.</p>
+              <h3>Multi-Arch Image Builds</h3>
+              <p>Docker images built for both amd64 and arm64 via GitHub Actions, published to GHCR on every push to main and every release tag. Image vulnerability scanning is not yet automated in CI.</p>
             </div>
           </div>
           <div class="sec-item">
@@ -895,7 +895,7 @@
         <div class="install-expanded">
           <div class="install-box">
             <span class="prompt">$</span>
-            <code id="install-cmd-2">BUGSIFT_DOMAIN=bugsift.yourdomain.com curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.0/install.sh | bash</code>
+            <code id="install-cmd-2">BUGSIFT_DOMAIN=bugsift.yourdomain.com BUGSIFT_ACME_EMAIL=you@yourdomain.com curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.0/install.sh | bash</code>
             <button class="copy-btn" type="button" onclick="copyCmd(this)">Copy</button>
           </div>
 
@@ -931,7 +931,7 @@
           </div>
 
           <p class="muted" style="margin-top:28px; font-size:14px;">
-            Pin a specific release with <code>BUGSIFT_IMAGE_TAG=v0.2.0</code> for reproducibility. Full deployment guide with TLS, backups, and upgrades: <a href="https://github.com/joym-gits/bugsift/blob/main/DEPLOY_GUIDE.md" target="_blank" rel="noopener">DEPLOY_GUIDE.md</a>. Need local testing first? Use <code>BUGSIFT_DOMAIN=localhost</code> and access on <code>localhost:3001</code>.
+            Pin a specific release with <code>BUGSIFT_IMAGE_TAG=v0.2.0</code> for reproducibility. Full deployment guide with TLS, backups, and upgrades: <a href="https://github.com/joym-gits/bugsift/blob/main/DEPLOY_GUIDE.md" target="_blank" rel="noopener">DEPLOY_GUIDE.md</a>. Need local testing first? Skip <code>BUGSIFT_DOMAIN</code> entirely — the installer defaults to <code>http://localhost:8080</code>, no domain or TLS setup required.
           </p>
         </div>
       </div>
@@ -1053,7 +1053,7 @@
 
     <script>
       function copyCmd(btn) {
-        const text = "BUGSIFT_DOMAIN=bugsift.yourdomain.com curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.0/install.sh | bash";
+        const text = "BUGSIFT_DOMAIN=bugsift.yourdomain.com BUGSIFT_ACME_EMAIL=you@yourdomain.com curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.0/install.sh | bash";
         navigator.clipboard.writeText(text).then(() => {
           const original = btn.textContent;
           btn.textContent = "Copied ✓";
