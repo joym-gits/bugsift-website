@@ -459,7 +459,7 @@
           <p>The entire installation is literally one command:</p>
 
           <div class="code-block">
-<code>BUGSIFT_DOMAIN=bugsift.yourdomain.com \
+<code>BUGSIFT_DOMAIN=bugsift.yourdomain.com BUGSIFT_ACME_EMAIL=you@yourdomain.com \
   curl -fsSL https://github.com/joym-gits/bugsift/releases/download/v0.2.1/install.sh | bash</code>
           </div>
 
@@ -477,7 +477,7 @@
           <p><strong>The entire process takes about 5 minutes.</strong></p>
 
           <h3>For local testing (before production):</h3>
-          <p>You can skip the domain and just run the command without the BUGSIFT_DOMAIN variable. This runs on <code>localhost:3001</code> (frontend) and <code>localhost:8001</code> (API).</p>
+          <p>Skip <code>BUGSIFT_DOMAIN</code> entirely and just run the installer with no env vars. It defaults to <code>http://localhost:8080</code> — no domain or TLS setup required. Setting <code>BUGSIFT_DOMAIN</code> at all triggers the Caddy + Let's Encrypt flow, so it also requires <code>BUGSIFT_ACME_EMAIL</code>, and won't work with <code>localhost</code> as the domain value (Let's Encrypt won't issue a cert for it).</p>
         </section>
 
         <!-- Initial Setup -->
@@ -488,7 +488,7 @@
           <div class="steps">
             <div class="step">
               <strong>Create Your First Admin Account (2 min)</strong>
-              <p>Visit your dashboard (either https://bugsift.yourdomain.com or http://localhost:3001). You'll see a setup wizard. Create an admin account with email + password. Write down the bootstrap token (shown once).</p>
+              <p>Visit your dashboard (either https://bugsift.yourdomain.com or http://localhost:8080). You'll see a setup wizard. Create an admin account with email + password. Write down the bootstrap token (shown once).</p>
             </div>
 
             <div class="step">
